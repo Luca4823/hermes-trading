@@ -10,7 +10,7 @@ class SchemaError(Exception):
 
 
 async def fetch(asset: str = "BTC/USDT") -> dict:
-    exchange_id = os.getenv("EXCHANGE_ID", "binance")
+    exchange_id = os.getenv("EXCHANGE_ID", "kraken")
     api_key = os.getenv("EXCHANGE_API_KEY", "")
     api_secret = os.getenv("EXCHANGE_API_SECRET", "")
 
@@ -22,9 +22,12 @@ async def fetch(asset: str = "BTC/USDT") -> dict:
     exchange_class = getattr(ccxt, exchange_id)
     exchange = exchange_class(config)
 
+    # Kraken uses XBT instead of BTC
+    kraken_asset = asset.replace("BTC/", "XBT/") if exchange_id == "kraken" else asset
+
     try:
-        ticker = await exchange.fetch_ticker(asset)
-        ohlcv = await exchange.fetch_ohlcv(asset, timeframe="1h", limit=50)
+        ticker = await exchange.fetch_ticker(kraken_asset)
+        ohlcv = await exchange.fetch_ohlcv(kraken_asset, timeframe="1h", limit=50)
     finally:
         await exchange.close()
 
